@@ -130,16 +130,22 @@ socket.on("login_ok",u=>{
  app.style.display="flex";
 });
 
-socket.on("chat_history",list=>{
- chatBox.innerHTML="";
- list.forEach(m=>{
+socket.on("chat_history", list => {
+
+ chatBox.innerHTML = "";
+
+ list.forEach(m => {
   addBubble({
-   me:m.username===user,
-   msg:m.msg,
-   type:m.type
+   me: m.username === user,
+   username: m.username,   // 👈 THÊM DÒNG NÀY
+   msg: m.msg,
+   type: m.type,
+   time: m.time
   });
  });
+
 });
+
 
 socket.on("message", m => {
   addBubble({
@@ -182,5 +188,6 @@ document.addEventListener("touchmove", function(e){
 }, {passive:false});
 
 });
+
 
 

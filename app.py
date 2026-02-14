@@ -2,11 +2,13 @@
 # chạy tốt Termux Android 5.0
 # python app.py
 
+# ===== MINI ZALO PRO V5 - FIXED TYPING =====
+
 from flask import Flask, request, send_from_directory, jsonify
 from flask_socketio import SocketIO, emit
 import os, json, time, threading, shutil
 
-# ---------- BASE PATH (FIX QUAN TRỌNG) ----------
+# ---------- BASE PATH ----------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FOLDER = os.path.join(BASE_DIR, "data")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
@@ -19,6 +21,7 @@ RATE_LIMIT = 2
 # ---------- INIT ----------
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
@@ -55,7 +58,7 @@ def save_json(path, data):
     except Exception as e:
         print("SAVE ERROR:", e)
 
-# ---------- LOAD RAM ----------
+# ---------- LOAD DATA ----------
 ram_chat = auto_json(CHAT_FILE, [])
 users = auto_json(USER_FILE, {})
 
@@ -80,7 +83,8 @@ def upload():
 
     return jsonify({"url": "/static/uploads/" + name})
 
-# ---------- SOCKET ----------
+# ---------- SOCKET EVENTS ----------
+
 @socketio.on("register")
 def register(data):
     u = data.get("username")
@@ -98,6 +102,7 @@ def register(data):
     save_json(USER_FILE, users)
     emit("login_ok", u)
 
+
 @socketio.on("login")
 def login(data):
     u = data.get("username")
@@ -112,8 +117,9 @@ def login(data):
     emit("chat_history", ram_chat)
     socketio.emit("online", list(online.values()))
 
+
 @socketio.on("disconnect")
-def dis():
+def disconnect():
     if request.sid in online:
         u = online[request.sid]
 
@@ -127,7 +133,6 @@ def dis():
 
 @socketio.on("message")
 def message(data):
-
     if request.sid not in online:
         return
 
@@ -155,32 +160,9 @@ def message(data):
 
     socketio.emit("message", msg)
 
+
 @socketio.on("private")
 def private(data):
-# ---------- TYPING ----------
-@socketio.on("typing")
-def typing():
-    if request.sid not in online:
-        return
-
-    u = online[request.sid]
-
-    if u not in typing_users:
-        typing_users.add(u)
-        emit("typing", u, broadcast=True, include_self=False)
-
-
-@socketio.on("stop_typing")
-def stop_typing():
-    if request.sid not in online:
-        return
-
-    u = online[request.sid]
-
-    if u in typing_users:
-        typing_users.remove(u)
-        emit("stop_typing", u, broadcast=True)
-
     if request.sid not in online:
         return
 
@@ -196,6 +178,33 @@ def stop_typing():
                 "msg": msg
             }, room=sid)
 
+
+# ---------- TYPING ----------
+
+@socketio.on("typing")
+def typing():
+    if request.sid not in online:
+        return
+
+    u = online[request.sid]
+
+    if u not in typing_users:
+        typing_users.add(u)
+        socketio.emit("typing", u, include_self=False)
+
+
+@socketio.on("stop_typing")
+def stop_typing():
+    if request.sid not in online:
+        return
+
+    u = online[request.sid]
+
+    if u in typing_users:
+        typing_users.remove(u)
+        socketio.emit("stop_typing", u)
+
+
 # ---------- AUTO BACKUP ----------
 def backup_loop():
     while True:
@@ -208,9 +217,6 @@ def backup_loop():
 threading.Thread(target=backup_loop, daemon=True).start()
 
 # ---------- RUN ----------
-import os
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port)
-

@@ -3,10 +3,12 @@ document.addEventListener("DOMContentLoaded",()=>{
 const socket=io();
 let logged=false;
 let user="";
+let typingTimeout=null;
 
 const chatBox=document.getElementById("chat");
 const msg=document.getElementById("msg");
 const file=document.getElementById("file");
+const typingDiv=document.getElementById("typing");
 
 function addBubble(data){
 
@@ -60,11 +62,27 @@ window.send=function(){
   });
 
   msg.value="";
+  socket.emit("stop_typing");
  }
 
 }
 
-// ---------- AUTO UPLOAD NGAY KHI CHỌN ẢNH ----------
+// ---------- TYPING ----------
+msg.addEventListener("input",()=>{
+
+ if(!logged) return;
+
+ socket.emit("typing");
+
+ clearTimeout(typingTimeout);
+
+ typingTimeout=setTimeout(()=>{
+  socket.emit("stop_typing");
+ },800);
+
+});
+
+// ---------- AUTO UPLOAD ----------
 file.addEventListener("change",()=>{
 
  if(!logged) return;
@@ -119,6 +137,18 @@ socket.on("message",m=>{
   type:m.type
  });
 });
+
+// ---------- NHẬN TYPING ----------
+socket.on("typing",username=>{
+ if(username!==user){
+  typingDiv.innerText=username+" đang nhập...";
+ }
+});
+
+socket.on("stop_typing",username=>{
+ typingDiv.innerText="";
+});
+
 // ===== CHẶN PULL TO REFRESH =====
 let lastY = 0;
 

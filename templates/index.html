@@ -134,10 +134,20 @@ html, body {
 </div>
 
 <div id="app" class="app">
-<div class="header">Chat</div>
-<div id="chat" class="chat"></div>
+  <div class="header">Chat</div>
 
-<div class="inputbar">
+  <div id="chat" class="chat"></div>
+
+  <div id="typing" style="
+      height:18px;
+      padding-left:10px;
+      font-size:13px;
+      color:#666;
+      font-style:italic;
+  "></div>
+
+  <div class="inputbar">
+
 <button class="icon" onclick="file.click()">📷</button>
 <input id="msg" placeholder="Nhắn tin...">
 <button class="send" onclick="send()">➤</button>

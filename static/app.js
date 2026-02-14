@@ -12,29 +12,40 @@ const typingDiv=document.getElementById("typing");
 
 function addBubble(data){
 
- const row=document.createElement("div");
- row.className="msg "+(data.me?"me":"");
+ const row = document.createElement("div");
+ row.className = "msg " + (data.me ? "me" : "");
 
- const bubble=document.createElement("div");
- bubble.className="bubble";
+ const bubble = document.createElement("div");
+ bubble.className = "bubble";
 
- if(data.type==="text"){
-  bubble.innerText=data.msg;
+ // 👇 THÊM PHẦN HIỂN THỊ TÊN (chỉ khi không phải mình)
+ if(!data.me){
+   const name = document.createElement("div");
+   name.className = "bubble-name";
+   name.innerText = data.username;
+   bubble.appendChild(name);
  }
 
- if(data.type==="image"){
-  const im=document.createElement("img");
-  im.src=data.msg;
-  bubble.appendChild(im);
+ if(data.type === "text"){
+   const text = document.createElement("div");
+   text.innerText = data.msg;
+   bubble.appendChild(text);
+ }
+
+ if(data.type === "image"){
+   const im = document.createElement("img");
+   im.src = data.msg;
+   bubble.appendChild(im);
  }
 
  row.appendChild(bubble);
  chatBox.appendChild(row);
 
  setTimeout(()=>{
-  chatBox.scrollTop=chatBox.scrollHeight;
+   chatBox.scrollTop = chatBox.scrollHeight;
  },50);
 }
+
 
 window.login=function(){
  socket.emit("login",{
@@ -171,4 +182,5 @@ document.addEventListener("touchmove", function(e){
 }, {passive:false});
 
 });
+
 

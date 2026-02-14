@@ -25,6 +25,7 @@ os.makedirs(DATA_FOLDER, exist_ok=True)
 
 lock = threading.Lock()
 online = {}
+typing_users = set()
 last_send = {}
 ram_chat = []
 
@@ -115,8 +116,15 @@ def login(data):
 @socketio.on("disconnect")
 def dis():
     if request.sid in online:
+        u = online[request.sid]
+
+        if u in typing_users:
+            typing_users.remove(u)
+            socketio.emit("stop_typing", u)
+
         del online[request.sid]
         socketio.emit("online", list(online.values()))
+
 
 @socketio.on("message")
 def message(data):
@@ -150,6 +158,29 @@ def message(data):
 
 @socketio.on("private")
 def private(data):
+# ---------- TYPING ----------
+@socketio.on("typing")
+def typing():
+    if request.sid not in online:
+        return
+
+    u = online[request.sid]
+
+    if u not in typing_users:
+        typing_users.add(u)
+        emit("typing", u, broadcast=True, include_self=False)
+
+
+@socketio.on("stop_typing")
+def stop_typing():
+    if request.sid not in online:
+        return
+
+    u = online[request.sid]
+
+    if u in typing_users:
+        typing_users.remove(u)
+        emit("stop_typing", u, broadcast=True)
 
     if request.sid not in online:
         return
@@ -178,5 +209,8 @@ def backup_loop():
 threading.Thread(target=backup_loop, daemon=True).start()
 
 # ---------- RUN ----------
+import os
+
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=8081)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port)

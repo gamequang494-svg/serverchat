@@ -18,8 +18,7 @@ RATE_LIMIT = 2
 
 # ---------- INIT ----------
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
-
+socketio = SocketIO(app, cors_allowed_origins="*")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
@@ -214,3 +213,4 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port)
+

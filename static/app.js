@@ -130,13 +130,16 @@ socket.on("chat_history",list=>{
  });
 });
 
-socket.on("message",m=>{
- addBubble({
-  me:m.username===user,
-  msg:m.msg,
-  type:m.type
- });
+socket.on("message", m => {
+  addBubble({
+    me: m.username === user,
+    username: m.username,
+    msg: m.msg,
+    type: m.type,
+    time: m.time
+  });
 });
+
 
 // ---------- NHẬN TYPING ----------
 socket.on("typing",username=>{
@@ -168,3 +171,4 @@ document.addEventListener("touchmove", function(e){
 }, {passive:false});
 
 });
+
